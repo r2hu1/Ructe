@@ -1,4 +1,5 @@
 import React from "react";
+import { X } from "lucide-react";
 import { Checkpoint } from "../../api/types";
 import {
   formatDistance,
@@ -33,16 +34,31 @@ export const CheckpointPopup: React.FC<CheckpointPopupProps> = ({
         }}
       >
         <strong>Mile {formatDistance(checkpoint.mile_marker)}</strong>
-        <span
-          className="chip"
-          style={{
-            backgroundColor: theme.bgColor,
-            color: theme.textColor,
-            border: `1px solid ${theme.borderColor}`,
-          }}
-        >
-          {checkpoint.risk.label}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span
+            className="chip"
+            style={{
+              backgroundColor: theme.bgColor,
+              color: theme.textColor,
+              border: `1px solid ${theme.borderColor}`,
+            }}
+          >
+            {checkpoint.risk.label}
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#94a3b8",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            <X size={14} />
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>

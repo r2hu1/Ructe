@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef } from "react";
 
-export function useAnimationFrameThrottle<T extends (...args: unknown[]) => void>(
-  callback: T
-): (...args: Parameters<T>) => void {
+export function useAnimationFrameThrottle<Args extends unknown[]>(
+  callback: (...args: Args) => void
+): (...args: Args) => void {
   const rafId = useRef<number | null>(null);
-  const latestArgs = useRef<Parameters<T> | null>(null);
-  const callbackRef = useRef<T>(callback);
+  const latestArgs = useRef<Args | null>(null);
+  const callbackRef = useRef<(...args: Args) => void>(callback);
 
   useEffect(() => {
     callbackRef.current = callback;
@@ -19,7 +19,7 @@ export function useAnimationFrameThrottle<T extends (...args: unknown[]) => void
     };
   }, []);
 
-  return useCallback((...args: Parameters<T>) => {
+  return useCallback((...args: Args) => {
     latestArgs.current = args;
 
     if (rafId.current === null) {

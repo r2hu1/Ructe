@@ -1,7 +1,7 @@
 import React from "react";
 import { Route } from "../../api/types";
 import { formatDistance, formatDuration, formatIsoDateTime } from "../../lib/format";
-import { ROUTE_COLORS, getRiskTheme, RISK_THEMES, RiskLevel } from "../../lib/riskColors";
+import { ROUTE_COLORS, RISK_THEMES, RiskLevel } from "../../lib/riskColors";
 
 interface RouteCardProps {
   route: Route;

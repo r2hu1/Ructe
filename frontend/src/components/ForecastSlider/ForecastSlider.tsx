@@ -15,11 +15,17 @@ export const ForecastSlider: React.FC = () => {
   } = useAppStore();
 
   const animationTimerRef = useRef<number | null>(null);
+  const hourRef = useRef<number>(forecastHour);
+
+  useEffect(() => {
+    hourRef.current = forecastHour;
+  }, [forecastHour]);
 
   useEffect(() => {
     if (isPlaying) {
       animationTimerRef.current = window.setInterval(() => {
-        setForecastHour((prev: number) => (prev >= 48 ? 0 : prev + 1));
+        const next = hourRef.current >= 48 ? 0 : hourRef.current + 1;
+        setForecastHour(next);
       }, 700);
     } else if (animationTimerRef.current) {
       clearInterval(animationTimerRef.current);
