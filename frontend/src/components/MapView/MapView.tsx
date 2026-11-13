@@ -42,7 +42,6 @@ export const MapView: React.FC = () => {
       style: DEFAULT_STYLE_URL,
       center: [-98.5795, 39.8283],
       zoom: 3.8,
-      attributionControl: true,
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-left");
