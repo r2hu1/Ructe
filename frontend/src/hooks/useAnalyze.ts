@@ -13,11 +13,11 @@ export function useAnalyze() {
     departureTime,
     loadWeightLb,
     checkpointInterval,
-    analyzeResult,
     setIsLoading,
     setIsUpdating,
     setError,
     setAnalyzeResult,
+    resetAnalysis,
   } = useAppStore();
 
   const executeAnalysis = useCallback(async () => {
@@ -48,11 +48,13 @@ export function useAnalyze() {
       checkpoint_interval_miles: checkpointInterval,
     };
 
-    if (analyzeResult) {
-      setIsUpdating(true);
-    } else {
-      setIsLoading(true);
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
     }
+
+    resetAnalysis();
+    setIsLoading(true);
+    setIsUpdating(false);
     setError(null);
 
     try {
@@ -76,11 +78,11 @@ export function useAnalyze() {
     departureTime,
     loadWeightLb,
     checkpointInterval,
-    analyzeResult,
     setIsLoading,
     setIsUpdating,
     setError,
     setAnalyzeResult,
+    resetAnalysis,
   ]);
 
   return { executeAnalysis };

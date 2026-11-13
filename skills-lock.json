@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "skills": {
+    "unslop-ui": {
+      "source": "JCarterJohnson/vibecoded-design-tells",
+      "sourceType": "github",
+      "skillPath": "skill/SKILL.md",
+      "computedHash": "d088b5688768496552daf8cfd10e30003e7f4ab0cfe800880ef1b4f3a1db22b9"
+    }
+  }
+}

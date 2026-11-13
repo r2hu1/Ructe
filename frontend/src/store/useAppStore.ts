@@ -42,6 +42,7 @@ interface AppState {
   error: ApiException | null;
 
   setAnalyzeResult: (result: AnalyzeResult) => void;
+  resetAnalysis: () => void;
   setSelectedRouteId: (id: string | null) => void;
   setHoveredRouteId: (id: string | null) => void;
   setSelectedCheckpoint: (cp: Checkpoint | null) => void;
@@ -89,6 +90,15 @@ export const useAppStore = create<AppState>((set) => ({
       selectedRouteId: result.recommended_route_id,
       selectedCheckpoint: null,
       error: null,
+    }),
+  resetAnalysis: () =>
+    set({
+      analyzeResult: null,
+      selectedRouteId: null,
+      hoveredRouteId: null,
+      selectedCheckpoint: null,
+      forecastHour: 0,
+      isPlaying: false,
     }),
   setSelectedRouteId: (id) => set({ selectedRouteId: id, selectedCheckpoint: null }),
   setHoveredRouteId: (id) => set({ hoveredRouteId: id }),

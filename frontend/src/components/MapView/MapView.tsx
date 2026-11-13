@@ -34,6 +34,7 @@ export const MapView: React.FC = () => {
     setSelectedCheckpoint,
     heatmapEnabled,
     forecastHour,
+    isLoading,
   } = useAppStore();
 
   useEffect(() => {
@@ -241,29 +242,44 @@ export const MapView: React.FC = () => {
   const updateHeatmapDataThrottled = useAnimationFrameThrottle(
     (hour: number) => {
       const map = mapRef.current;
-      if (!map || !mapLoaded || !analyzeResult) return;
+      if (!map || !mapLoaded) return;
       const source = map.getSource("heatmap-source") as maplibregl.GeoJSONSource | undefined;
-      if (source) {
-        const geojson = getHeatmapGeoJSONForHour(analyzeResult.heatmap, hour);
-        source.setData(geojson as any);
+      if (!source) return;
+      if (isLoading || !analyzeResult) {
+        source.setData({ type: "FeatureCollection", features: [] });
+        return;
       }
+      const geojson = getHeatmapGeoJSONForHour(analyzeResult.heatmap, hour);
+      source.setData(geojson as any);
     }
   );
 
   useEffect(() => {
     updateHeatmapDataThrottled(forecastHour);
-  }, [forecastHour, analyzeResult, updateHeatmapDataThrottled]);
+  }, [forecastHour, analyzeResult, isLoading, updateHeatmapDataThrottled]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    if (!analyzeResult || !analyzeResult.routes || analyzeResult.routes.length === 0) {
+    if (isLoading || !analyzeResult || !analyzeResult.routes || analyzeResult.routes.length === 0) {
       const routesSource = map.getSource("routes-source") as maplibregl.GeoJSONSource | undefined;
       if (routesSource) routesSource.setData({ type: "FeatureCollection", features: [] });
 
       const cpSource = map.getSource("checkpoints-source") as maplibregl.GeoJSONSource | undefined;
       if (cpSource) cpSource.setData({ type: "FeatureCollection", features: [] });
+
+      const hmSource = map.getSource("heatmap-source") as maplibregl.GeoJSONSource | undefined;
+      if (hmSource) hmSource.setData({ type: "FeatureCollection", features: [] });
+
+      if (popupRootRef.current) {
+        popupRootRef.current.unmount();
+        popupRootRef.current = null;
+      }
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
       return;
     }
 
@@ -308,7 +324,18 @@ export const MapView: React.FC = () => {
         maxZoom: 12,
       });
     }
-  }, [analyzeResult, selectedRouteId, hoveredRouteId, mapLoaded]);
+  }, [analyzeResult, selectedRouteId, hoveredRouteId, mapLoaded, isLoading]);
+
+  useEffect(() => {
+    if (!selectedCheckpoint && popupRef.current) {
+      if (popupRootRef.current) {
+        popupRootRef.current.unmount();
+        popupRootRef.current = null;
+      }
+      popupRef.current.remove();
+      popupRef.current = null;
+    }
+  }, [selectedCheckpoint]);
 
   useEffect(() => {
     const map = mapRef.current;

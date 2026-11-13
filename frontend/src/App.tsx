@@ -34,11 +34,11 @@ export const App: React.FC = () => {
         <div className="sidebar-content">
           <TripForm />
 
-          {error && <ErrorState error={error} onRetry={executeAnalysis} />}
+          {!isLoading && error && <ErrorState error={error} onRetry={executeAnalysis} />}
 
-          {isLoading && !analyzeResult && <SkeletonLoader />}
+          {isLoading && <SkeletonLoader />}
 
-          {analyzeResult && (
+          {!isLoading && analyzeResult && (
             <>
               <RecommendationBanner />
               <RouteCards />

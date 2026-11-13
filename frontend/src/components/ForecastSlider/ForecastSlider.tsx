@@ -12,11 +12,32 @@ export const ForecastSlider: React.FC = () => {
     setIsPlaying,
     heatmapEnabled,
     setHeatmapEnabled,
+    isLoading,
   } = useAppStore();
 
   const animationTimerRef = useRef<number | null>(null);
   const hourRef = useRef<number>(forecastHour);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+
+  useEffect(() => {
+    return () => {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      setIsSpeaking(false);
+      if (isPlaying) {
+        setIsPlaying(false);
+      }
+    }
+  }, [isLoading, isPlaying, setIsPlaying]);
 
   useEffect(() => {
     hourRef.current = forecastHour;
@@ -70,7 +91,7 @@ export const ForecastSlider: React.FC = () => {
     setIsSpeaking(true);
   };
 
-  if (!analyzeResult || !analyzeResult.heatmap) {
+  if (isLoading || !analyzeResult || !analyzeResult.heatmap) {
     return null;
   }
 

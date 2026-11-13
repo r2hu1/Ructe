@@ -3,7 +3,7 @@ import { RISK_THEMES, ROUTE_COLORS, RiskLevel } from "../../lib/riskColors";
 import { useAppStore } from "../../store/useAppStore";
 
 export const Legend: React.FC = () => {
-  const { analyzeResult } = useAppStore();
+  const { analyzeResult, isLoading } = useAppStore();
 
   return (
     <div className="legend-panel">
@@ -26,7 +26,7 @@ export const Legend: React.FC = () => {
         ))}
       </div>
 
-      {analyzeResult && analyzeResult.routes.length > 0 && (
+      {!isLoading && analyzeResult && analyzeResult.routes.length > 0 && (
         <>
           <span className="legend-title" style={{ marginTop: "6px" }}>Routes</span>
           <div className="legend-items">
