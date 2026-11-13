@@ -43,7 +43,6 @@ export async function apiClient<T>(path: string, options: RequestInit = {}): Pro
     try {
       errPayload = await response.json();
     } catch {
-      // fallback
     }
 
     const code = errPayload.error?.code || `HTTP_${response.status}`;
