@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowRight, Calendar, MapPin, Navigation, Scale, Sliders, Truck } from "lucide-react";
+import { ArrowRight, Calendar, MapPin, Navigation, Scale, Truck } from "lucide-react";
 import { useGeocodeAutocomplete } from "../../hooks/useGeocodeAutocomplete";
 import { useAppStore } from "../../store/useAppStore";
 import { useAnalyze } from "../../hooks/useAnalyze";
