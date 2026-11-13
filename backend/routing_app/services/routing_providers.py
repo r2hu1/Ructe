@@ -71,11 +71,61 @@ class MapboxRoutingProvider(RoutingProvider):
         self.access_token = access_token or getattr(settings, "MAPBOX_ACCESS_TOKEN", "").strip()
 
     def get_routes(self, origin: Coordinate, destination: Coordinate) -> List[RawRoute]:
-        if not self.access_token:
-            raise RoutingError("Mapbox access token is not configured")
+        if self.access_token:
+            url = (
+                f"https://api.mapbox.com/directions/v5/mapbox/driving/"
+                f"{origin.lng},{origin.lat};{destination.lng},{destination.lat}"
+            )
+            params = {
+                "alternatives": "true",
+                "geometries": "geojson",
+                "overview": "full",
+                "steps": "false",
+                "access_token": self.access_token,
+            }
 
+            session = create_resilient_session()
+            try:
+                response = session.get(url, params=params, timeout=UPSTREAM_TIMEOUT_SECONDS)
+                if response.status_code == 200:
+                    data = response.json()
+                    routes_data = data.get("routes", [])
+                    if routes_data:
+                        raw_routes: List[RawRoute] = []
+                        for idx, route_item in enumerate(routes_data[:3]):
+                            coords_raw = route_item.get("geometry", {}).get("coordinates", [])
+                            coords = [
+                                Coordinate(lat=float(c[1]), lng=float(c[0]))
+                                for c in coords_raw
+                                if len(c) >= 2
+                            ]
+                            distance_meters = float(route_item.get("distance", 0.0))
+                            duration_seconds = float(route_item.get("duration", 0.0))
+
+                            raw_routes.append(
+                                RawRoute(
+                                    id=ROUTE_IDS[idx],
+                                    label=ROUTE_LABELS[idx],
+                                    distance_miles=distance_meters * METERS_TO_MILES,
+                                    duration_seconds=duration_seconds,
+                                    coordinates=coords,
+                                )
+                            )
+                        return raw_routes
+                elif response.status_code in (422, 404):
+                    raise RoutingError("No route found between origin and destination")
+                elif response.status_code >= 500 or response.status_code == 429:
+                    raise UpstreamRoutingError(f"Mapbox returned status {response.status_code}")
+            except (RoutingError, UpstreamRoutingError, UpstreamRoutingTimeoutError):
+                raise
+            except requests.RequestException:
+                pass
+
+        return self.fetch_osrm_fallback_routes(origin, destination)
+
+    def fetch_osrm_fallback_routes(self, origin: Coordinate, destination: Coordinate) -> List[RawRoute]:
         url = (
-            f"https://api.mapbox.com/directions/v5/mapbox/driving/"
+            f"https://router.project-osrm.org/route/v1/driving/"
             f"{origin.lng},{origin.lat};{destination.lng},{destination.lat}"
         )
         params = {
@@ -83,32 +133,28 @@ class MapboxRoutingProvider(RoutingProvider):
             "geometries": "geojson",
             "overview": "full",
             "steps": "false",
-            "access_token": self.access_token,
         }
 
         session = create_resilient_session()
         try:
             response = session.get(url, params=params, timeout=UPSTREAM_TIMEOUT_SECONDS)
         except requests.Timeout as exc:
-            logger.warning("Mapbox directions request timed out: %s", exc)
-            raise UpstreamRoutingTimeoutError("Mapbox routing service timed out") from exc
+            logger.warning("OSRM routing request timed out: %s", exc)
+            raise UpstreamRoutingTimeoutError("Routing service timed out") from exc
         except requests.RequestException as exc:
-            logger.warning("Mapbox directions connection error: %s", exc)
-            raise UpstreamRoutingError("Mapbox routing connection error") from exc
+            logger.warning("OSRM routing connection error: %s", exc)
+            raise UpstreamRoutingError("Routing upstream connection error") from exc
 
-        if response.status_code >= 500 or response.status_code == 429:
-            raise UpstreamRoutingError(f"Mapbox returned status {response.status_code}")
-
-        if response.status_code == 422 or response.status_code == 404:
-            raise RoutingError("No route found between origin and destination")
+        if response.status_code in (400, 404, 422):
+            raise RoutingError("No route found between coordinates")
 
         if response.status_code != 200:
-            raise UpstreamRoutingError(f"Mapbox returned unexpected status {response.status_code}")
+            raise UpstreamRoutingError(f"Routing provider returned status {response.status_code}")
 
         data = response.json()
         routes_data = data.get("routes", [])
         if not routes_data:
-            raise RoutingError("No routes returned by Mapbox")
+            raise RoutingError("No routes returned by routing provider")
 
         raw_routes: List[RawRoute] = []
         for idx, route_item in enumerate(routes_data[:3]):

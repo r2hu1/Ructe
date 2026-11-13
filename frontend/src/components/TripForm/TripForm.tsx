@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowRight, Calendar, MapPin, Navigation, Scale, Truck } from "lucide-react";
+import { ArrowRight, Calendar, Loader2, MapPin, Navigation, Scale, Truck } from "lucide-react";
 import { useGeocodeAutocomplete } from "../../hooks/useGeocodeAutocomplete";
 import { useAppStore } from "../../store/useAppStore";
 import { useAnalyze } from "../../hooks/useAnalyze";
@@ -72,10 +72,20 @@ export const TripForm: React.FC = () => {
               setOriginActive(true);
             }}
             onFocus={() => setOriginActive(true)}
+            onBlur={() => {
+              setTimeout(() => setOriginActive(false), 200);
+            }}
             placeholder="e.g. Chicago, IL"
             autoComplete="off"
             required
           />
+          {originAutocomp.isLoading && (
+            <Loader2
+              size={14}
+              className="input-icon"
+              style={{ left: "auto", right: "12px", animation: "spin 1s linear infinite" }}
+            />
+          )}
         </div>
         {originActive && originAutocomp.suggestions.length > 0 && (
           <ul className="autocomplete-dropdown">
@@ -83,7 +93,10 @@ export const TripForm: React.FC = () => {
               <li
                 key={idx}
                 className="autocomplete-item"
-                onClick={() => handleSelectOrigin(item)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelectOrigin(item);
+                }}
               >
                 {item.label}
               </li>
@@ -108,10 +121,20 @@ export const TripForm: React.FC = () => {
               setDestActive(true);
             }}
             onFocus={() => setDestActive(true)}
+            onBlur={() => {
+              setTimeout(() => setDestActive(false), 200);
+            }}
             placeholder="e.g. Atlanta, GA"
             autoComplete="off"
             required
           />
+          {destAutocomp.isLoading && (
+            <Loader2
+              size={14}
+              className="input-icon"
+              style={{ left: "auto", right: "12px", animation: "spin 1s linear infinite" }}
+            />
+          )}
         </div>
         {destActive && destAutocomp.suggestions.length > 0 && (
           <ul className="autocomplete-dropdown">
@@ -119,7 +142,10 @@ export const TripForm: React.FC = () => {
               <li
                 key={idx}
                 className="autocomplete-item"
-                onClick={() => handleSelectDest(item)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelectDest(item);
+                }}
               >
                 {item.label}
               </li>

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { Eye, EyeOff, Pause, Play } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Eye, EyeOff, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { computeForecastTimeAtHour } from "../../lib/format";
 import { useAppStore } from "../../store/useAppStore";
 
@@ -16,6 +16,7 @@ export const ForecastSlider: React.FC = () => {
 
   const animationTimerRef = useRef<number | null>(null);
   const hourRef = useRef<number>(forecastHour);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
 
   useEffect(() => {
     hourRef.current = forecastHour;
@@ -39,6 +40,36 @@ export const ForecastSlider: React.FC = () => {
     };
   }, [isPlaying, setForecastHour]);
 
+  const toggleAudioBriefing = () => {
+    if (!("speechSynthesis" in window)) {
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!analyzeResult) {
+      return;
+    }
+
+    const { recommended_route_id, routes, explanation } = analyzeResult;
+    const recommended = routes.find((r) => r.id === recommended_route_id) || routes[0];
+    const textToSpeak = `Weather-Aware Routing Briefing. ${explanation}. Expected duration is ${recommended?.summary?.duration_hours_minutes}. Overall maximum risk level is ${recommended?.summary?.max_risk}.`;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+  };
+
   if (!analyzeResult || !analyzeResult.heatmap) {
     return null;
   }
@@ -52,8 +83,8 @@ export const ForecastSlider: React.FC = () => {
         type="button"
         className="play-btn"
         onClick={() => setIsPlaying(!isPlaying)}
-        title={isPlaying ? "Pause Forecast" : "Play Forecast"}
-        aria-label={isPlaying ? "Pause Forecast" : "Play Forecast"}
+        title={isPlaying ? "Pause Forecast Animation" : "Play 48h Forecast Animation"}
+        aria-label={isPlaying ? "Pause Forecast Animation" : "Play 48h Forecast Animation"}
       >
         {isPlaying ? <Pause size={18} /> : <Play size={18} />}
       </button>
@@ -61,7 +92,7 @@ export const ForecastSlider: React.FC = () => {
       <div className="slider-group">
         <div className="slider-label-row">
           <span>
-            Forecast: <strong>+{forecastHour}h</strong> ({timeFormatted.local})
+            Forecast Animation: <strong>+{forecastHour}h</strong> ({timeFormatted.local})
           </span>
           <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
             {timeFormatted.utc}
@@ -78,6 +109,19 @@ export const ForecastSlider: React.FC = () => {
           aria-label="48-hour Weather Forecast Slider"
         />
       </div>
+
+      <button
+        type="button"
+        className={`heatmap-toggle-btn ${isSpeaking ? "active" : ""}`}
+        onClick={toggleAudioBriefing}
+        title={isSpeaking ? "Stop Voice Briefing" : "Listen to Weather Audio Briefing"}
+        aria-label="Voice Weather Briefing"
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {isSpeaking ? <VolumeX size={15} color="#ef4444" /> : <Volume2 size={15} />}
+          <span>{isSpeaking ? "Stop Audio" : "Audio Brief"}</span>
+        </span>
+      </button>
 
       <button
         type="button"
