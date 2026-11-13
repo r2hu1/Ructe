@@ -105,6 +105,98 @@ body {
   border-bottom: 1px solid var(--border-color);
   background: rgba(15, 23, 42, 0.5);
   flex-shrink: 0;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.new-analysis-bar {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.trip-summary-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.chip-locations {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-meta {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.new-analysis-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.new-analysis-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.form-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.form-toggle-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-hide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.form-hide-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-content {

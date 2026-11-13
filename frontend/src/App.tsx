@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from "react";
-import { Truck } from "lucide-react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
+import { ChevronUp, Plus, Truck } from "lucide-react";
 import { useAppStore } from "./store/useAppStore";
 import { TripForm } from "./components/TripForm/TripForm";
 import { RecommendationBanner } from "./components/RecommendationBanner/RecommendationBanner";
@@ -15,8 +15,25 @@ const MapView = lazy(() =>
 );
 
 export const App: React.FC = () => {
-  const { isLoading, error, analyzeResult } = useAppStore();
+  const {
+    isLoading,
+    error,
+    analyzeResult,
+    originInput,
+    destinationInput,
+    loadWeightLb,
+    checkpointInterval,
+  } = useAppStore();
   const { executeAnalysis } = useAnalyze();
+  const [showInputs, setShowInputs] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (analyzeResult) {
+      setShowInputs(false);
+    } else {
+      setShowInputs(true);
+    }
+  }, [analyzeResult]);
 
   return (
     <div className="app-container">
@@ -51,9 +68,45 @@ export const App: React.FC = () => {
           </p>
         </header>
 
-        <div className="sidebar-pinned-form">
-          <TripForm />
-        </div>
+        {showInputs ? (
+          <div className="sidebar-pinned-form">
+            {analyzeResult && (
+              <div className="form-toggle-row">
+                <span className="form-toggle-label">Trip Configuration</span>
+                <button
+                  type="button"
+                  className="form-hide-btn"
+                  onClick={() => setShowInputs(false)}
+                  title="Hide inputs"
+                >
+                  <ChevronUp size={15} />
+                  <span>Hide</span>
+                </button>
+              </div>
+            )}
+            <TripForm />
+          </div>
+        ) : (
+          <div className="new-analysis-bar">
+            <div className="trip-summary-chip">
+              <span className="chip-locations">
+                {originInput || "Origin"} → {destinationInput || "Destination"}
+              </span>
+              <span className="chip-meta">
+                {Number(loadWeightLb).toLocaleString()} lb • {checkpointInterval} mi intervals
+              </span>
+            </div>
+            <button
+              type="button"
+              className="new-analysis-btn"
+              onClick={() => setShowInputs(true)}
+              title="Configure and run a new route analysis"
+            >
+              <Plus size={15} />
+              <span>New Analysis</span>
+            </button>
+          </div>
+        )}
 
         <div className="sidebar-content">
           {!isLoading && error && <ErrorState error={error} onRetry={executeAnalysis} />}
