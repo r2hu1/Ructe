@@ -47,7 +47,7 @@ export const MapView: React.FC = () => {
       zoom: 3.8,
     });
 
-    map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-left");
+    map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
 
     map.on("load", () => {
       map.addSource("heatmap-source", {
@@ -319,7 +319,7 @@ export const MapView: React.FC = () => {
     const bbox = computeRoutesBoundingBox(analyzeResult.routes);
     if (bbox) {
       map.fitBounds(bbox, {
-        padding: { top: 60, bottom: 90, left: 60, right: 60 },
+        padding: { top: 60, bottom: 90, left: 450, right: 60 },
         duration: 1200,
         maxZoom: 12,
       });

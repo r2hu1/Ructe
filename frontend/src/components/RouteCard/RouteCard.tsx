@@ -6,6 +6,7 @@ import { ROUTE_COLORS, RISK_THEMES, RiskLevel } from "../../lib/riskColors";
 interface RouteCardProps {
   route: Route;
   isRecommended: boolean;
+  isSingleRoute?: boolean;
   isSelected: boolean;
   isHovered: boolean;
   onSelect: () => void;
@@ -15,6 +16,7 @@ interface RouteCardProps {
 export const RouteCard: React.FC<RouteCardProps> = ({
   route,
   isRecommended,
+  isSingleRoute,
   isSelected,
   isHovered,
   onSelect,
@@ -55,6 +57,8 @@ export const RouteCard: React.FC<RouteCardProps> = ({
         </div>
         {route.not_recommended ? (
           <span className="badge badge-not-recommended">NOT RECOMMENDED</span>
+        ) : isSingleRoute ? (
+          <span className="badge badge-available">AVAILABLE ROUTE</span>
         ) : isRecommended ? (
           <span className="badge badge-recommended">RECOMMENDED</span>
         ) : null}

@@ -61,7 +61,7 @@ export const RISK_THEMES: Record<RiskLevel, RiskTheme> = {
 export const ROUTE_COLORS: Record<string, { stroke: string; outline: string }> = {
   route_a: { stroke: "#2563eb", outline: "#1e3a8a" },
   route_b: { stroke: "#0891b2", outline: "#164e63" },
-  route_c: { stroke: "#7c3aed", outline: "#4c1d95" },
+  route_c: { stroke: "#0d9488", outline: "#115e59" },
 };
 
 export function getRiskTheme(level: number | RiskLevel): RiskTheme {

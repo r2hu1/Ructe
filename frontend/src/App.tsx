@@ -20,33 +20,6 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      <aside className="sidebar">
-        <header className="sidebar-header">
-          <h1 className="sidebar-title">
-            <Truck size={22} color="#3b82f6" />
-            <span>Weather-Aware Routing</span>
-          </h1>
-          <p className="sidebar-subtitle">
-            Dynamic corridor risk analysis & load escalation engine
-          </p>
-        </header>
-
-        <div className="sidebar-content">
-          <TripForm />
-
-          {!isLoading && error && <ErrorState error={error} onRetry={executeAnalysis} />}
-
-          {isLoading && <SkeletonLoader />}
-
-          {!isLoading && analyzeResult && (
-            <>
-              <RecommendationBanner />
-              <RouteCards />
-            </>
-          )}
-        </div>
-      </aside>
-
       <main className="map-container">
         <Suspense
           fallback={
@@ -66,6 +39,35 @@ export const App: React.FC = () => {
           <MapView />
         </Suspense>
       </main>
+
+      <aside className="sidebar">
+        <header className="sidebar-header">
+          <h1 className="sidebar-title">
+            <Truck size={20} color="#38bdf8" />
+            <span>Weather-Aware Routing</span>
+          </h1>
+          <p className="sidebar-subtitle">
+            Dynamic corridor risk analysis & load escalation engine
+          </p>
+        </header>
+
+        <div className="sidebar-pinned-form">
+          <TripForm />
+        </div>
+
+        <div className="sidebar-content">
+          {!isLoading && error && <ErrorState error={error} onRetry={executeAnalysis} />}
+
+          {isLoading && <SkeletonLoader />}
+
+          {!isLoading && analyzeResult && (
+            <>
+              <RecommendationBanner />
+              <RouteCards />
+            </>
+          )}
+        </div>
+      </aside>
     </div>
   );
 };

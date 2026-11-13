@@ -48,9 +48,8 @@ def generate_recommendation_explanation(
 
     if len(routes) == 1:
         return (
-            f"{recommended.label} is the only available route with "
-            f"{recommended.summary.severe_miles:.1f} severe miles and "
-            f"{recommended.summary.duration_hours_minutes} travel time."
+            f"Only 1 route available: {recommended.label} "
+            f"({recommended.summary.total_miles:.1f} mi, {recommended.summary.duration_hours_minutes})."
         )
 
     if all_blocked:
@@ -69,7 +68,9 @@ def generate_recommendation_explanation(
     else:
         time_clause = f"It is {time_diff_min} minutes slower than the fastest route."
 
-    other_routes = [r for r in routes if r.id != recommended.id]
+    other_routes = [r for r in routes if r is not recommended]
+    if not other_routes and len(routes) > 1:
+        other_routes = [r for idx, r in enumerate(routes) if idx != 0]
     severe_diffs = [
         f"{r.summary.severe_miles:.1f} on {r.label}" for r in other_routes
     ]

@@ -31,6 +31,7 @@ export const RouteCards: React.FC = () => {
           key={route.id}
           route={route}
           isRecommended={route.id === analyzeResult.recommended_route_id}
+          isSingleRoute={analyzeResult.routes.length === 1}
           isSelected={route.id === selectedRouteId}
           isHovered={route.id === hoveredRouteId}
           onSelect={() => setSelectedRouteId(route.id)}

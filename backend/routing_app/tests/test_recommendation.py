@@ -139,3 +139,29 @@ def test_tolerance_handling():
 
     outcome = rank_and_recommend_routes([route_a, route_b])
     assert outcome.recommended_route_id == "route_b"
+
+
+def test_single_route_recommendation():
+    route_a = make_test_route("route_a", "Route A", severe_miles=0.0, high_miles=0.0, avg_risk=0.5, duration_seconds=3600.0)
+    outcome = rank_and_recommend_routes([route_a])
+    assert outcome.recommended_route_id == "route_a"
+    assert outcome.ranking == [{"route_id": "route_a", "rank": 1}]
+    assert outcome.explanation == "Only 1 route available: Route A (100.0 mi, 1h 40m)."
+
+
+def test_identical_routes_ranking():
+    route_a = make_test_route("route_a", "Route A", severe_miles=5.0, high_miles=10.0, avg_risk=1.0, duration_seconds=3600.0)
+    route_b = make_test_route("route_b", "Route B", severe_miles=5.0, high_miles=10.0, avg_risk=1.0, duration_seconds=3600.0)
+    outcome = rank_and_recommend_routes([route_a, route_b])
+    assert outcome.recommended_route_id == "route_a"
+    assert outcome.ranking == [{"route_id": "route_a", "rank": 1}, {"route_id": "route_b", "rank": 2}]
+    assert "equal weather risk across routes" in outcome.explanation
+
+
+def test_duplicate_route_instances():
+    route_a = make_test_route("route_a", "Route A", severe_miles=5.0, high_miles=10.0, avg_risk=1.0, duration_seconds=3600.0)
+    outcome = rank_and_recommend_routes([route_a, route_a])
+    assert outcome.recommended_route_id == "route_a"
+    assert outcome.ranking == [{"route_id": "route_a", "rank": 1}, {"route_id": "route_a", "rank": 2}]
+    assert "equal weather risk across routes" in outcome.explanation
+

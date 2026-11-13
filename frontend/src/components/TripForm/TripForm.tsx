@@ -154,7 +154,6 @@ export const TripForm: React.FC = () => {
         )}
       </div>
 
-      <div className="form-row">
         <div className="form-group">
           <label className="form-label" htmlFor="departure-time-input">
             Departure (Local)
@@ -191,7 +190,6 @@ export const TripForm: React.FC = () => {
             />
           </div>
         </div>
-      </div>
 
       <div className="form-group">
         <label className="form-label">
