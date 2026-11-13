@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createRoot, Root } from "react-dom/client";
 import maplibregl, { Map as MapLibreMap, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Checkpoint } from "../../api/types";
@@ -22,6 +23,7 @@ export const MapView: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const popupRef = useRef<Popup | null>(null);
+  const popupRootRef = useRef<Root | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const {
@@ -173,25 +175,33 @@ export const MapView: React.FC = () => {
 
         setSelectedCheckpoint(cpData);
 
+        if (popupRootRef.current) {
+          popupRootRef.current.unmount();
+          popupRootRef.current = null;
+        }
+
         if (popupRef.current) {
           popupRef.current.remove();
         }
 
         const popupNode = document.createElement("div");
-        popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: "300px" })
+        popupRef.current = new maplibregl.Popup({ closeButton: false, maxWidth: "300px" })
           .setLngLat(geom.coordinates as [number, number])
           .setDOMContent(popupNode)
           .addTo(map);
 
-        import("react-dom/client").then(({ createRoot }) => {
-          const root = createRoot(popupNode);
-          root.render(
-            <CheckpointPopup
-              checkpoint={cpData}
-              onClose={() => popupRef.current?.remove()}
-            />
-          );
-        });
+        const root = createRoot(popupNode);
+        popupRootRef.current = root;
+        root.render(
+          <CheckpointPopup
+            checkpoint={cpData}
+            onClose={() => {
+              if (popupRef.current) {
+                popupRef.current.remove();
+              }
+            }}
+          />
+        );
       });
 
       map.on("mouseenter", "checkpoints-layer", () => {
@@ -207,6 +217,9 @@ export const MapView: React.FC = () => {
     mapRef.current = map;
 
     return () => {
+      if (popupRootRef.current) {
+        popupRootRef.current.unmount();
+      }
       map.remove();
       mapRef.current = null;
     };
