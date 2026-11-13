@@ -49,10 +49,11 @@ class RawRoute:
 def create_resilient_session() -> requests.Session:
     session = requests.Session()
     retries = Retry(
-        total=2,
-        backoff_factor=0.5,
-        status_forcelist=[429, 500, 502, 503, 504],
+        total=1,
+        backoff_factor=0.2,
+        status_forcelist=[500, 502, 503, 504],
         raise_on_status=False,
+        respect_retry_after_header=False,
     )
     adapter = HTTPAdapter(max_retries=retries)
     session.mount("https://", adapter)
@@ -124,10 +125,10 @@ class MapboxRoutingProvider(RoutingProvider):
         return self.fetch_osrm_fallback_routes(origin, destination)
 
     def fetch_osrm_fallback_routes(self, origin: Coordinate, destination: Coordinate) -> List[RawRoute]:
-        url = (
-            f"https://router.project-osrm.org/route/v1/driving/"
-            f"{origin.lng},{origin.lat};{destination.lng},{destination.lat}"
-        )
+        endpoints = [
+            f"https://router.project-osrm.org/route/v1/driving/{origin.lng},{origin.lat};{destination.lng},{destination.lat}",
+            f"https://routing.openstreetmap.de/routed-car/route/v1/driving/{origin.lng},{origin.lat};{destination.lng},{destination.lat}",
+        ]
         params = {
             "alternatives": "true",
             "geometries": "geojson",
@@ -136,48 +137,46 @@ class MapboxRoutingProvider(RoutingProvider):
         }
 
         session = create_resilient_session()
-        try:
-            response = session.get(url, params=params, timeout=UPSTREAM_TIMEOUT_SECONDS)
-        except requests.Timeout as exc:
-            logger.warning("OSRM routing request timed out: %s", exc)
-            raise UpstreamRoutingTimeoutError("Routing service timed out") from exc
-        except requests.RequestException as exc:
-            logger.warning("OSRM routing connection error: %s", exc)
-            raise UpstreamRoutingError("Routing upstream connection error") from exc
+        last_error: Optional[Exception] = None
 
-        if response.status_code in (400, 404, 422):
-            raise RoutingError("No route found between coordinates")
+        for url in endpoints:
+            try:
+                response = session.get(url, params=params, timeout=UPSTREAM_TIMEOUT_SECONDS)
+                if response.status_code == 200:
+                    data = response.json()
+                    routes_data = data.get("routes", [])
+                    if routes_data:
+                        raw_routes: List[RawRoute] = []
+                        for idx, route_item in enumerate(routes_data[:3]):
+                            coords_raw = route_item.get("geometry", {}).get("coordinates", [])
+                            coords = [
+                                Coordinate(lat=float(c[1]), lng=float(c[0]))
+                                for c in coords_raw
+                                if len(c) >= 2
+                            ]
+                            distance_meters = float(route_item.get("distance", 0.0))
+                            duration_seconds = float(route_item.get("duration", 0.0))
 
-        if response.status_code != 200:
-            raise UpstreamRoutingError(f"Routing provider returned status {response.status_code}")
+                            raw_routes.append(
+                                RawRoute(
+                                    id=ROUTE_IDS[idx],
+                                    label=ROUTE_LABELS[idx],
+                                    distance_miles=distance_meters * METERS_TO_MILES,
+                                    duration_seconds=duration_seconds,
+                                    coordinates=coords,
+                                )
+                            )
+                        return raw_routes
+                elif response.status_code in (400, 404, 422):
+                    raise RoutingError("No route found between coordinates")
+            except (RoutingError, UpstreamRoutingTimeoutError, UpstreamRoutingError) as exc:
+                last_error = exc
+            except requests.RequestException:
+                last_error = UpstreamRoutingError("Routing upstream connection error")
 
-        data = response.json()
-        routes_data = data.get("routes", [])
-        if not routes_data:
-            raise RoutingError("No routes returned by routing provider")
-
-        raw_routes: List[RawRoute] = []
-        for idx, route_item in enumerate(routes_data[:3]):
-            coords_raw = route_item.get("geometry", {}).get("coordinates", [])
-            coords = [
-                Coordinate(lat=float(c[1]), lng=float(c[0]))
-                for c in coords_raw
-                if len(c) >= 2
-            ]
-            distance_meters = float(route_item.get("distance", 0.0))
-            duration_seconds = float(route_item.get("duration", 0.0))
-
-            raw_routes.append(
-                RawRoute(
-                    id=ROUTE_IDS[idx],
-                    label=ROUTE_LABELS[idx],
-                    distance_miles=distance_meters * METERS_TO_MILES,
-                    duration_seconds=duration_seconds,
-                    coordinates=coords,
-                )
-            )
-
-        return raw_routes
+        if last_error:
+            raise last_error
+        raise RoutingError("No routes returned by routing provider")
 
 
 class OpenRouteServiceRoutingProvider(RoutingProvider):

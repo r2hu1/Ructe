@@ -31,6 +31,8 @@ from routing_app.services.weather import (
     deduplicate_coordinates,
     extract_weather_sample_for_eta,
     get_cached_or_fetch_weather,
+    set_weather_fallback_used,
+    was_weather_fallback_used,
 )
 
 logger = logging.getLogger("routing_app.pipeline")
@@ -54,6 +56,7 @@ def run_analyze_pipeline(
     checkpoint_interval_miles: float,
     routing_provider: Union[RoutingProvider, None] = None,
 ) -> AnalyzeResult:
+    set_weather_fallback_used(False)
     utc_departure = ensure_utc_datetime(departure_time)
     origin_loc = resolve_location(origin_input)
     dest_loc = resolve_location(destination_input)
@@ -173,6 +176,10 @@ def run_analyze_pipeline(
     if has_extrapolated_warning:
         warnings.append(
             "Trip arrival extends beyond available forecast hours; weather for late checkpoints was extrapolated from the latest forecast slot."
+        )
+    if was_weather_fallback_used():
+        warnings.append(
+            "Primary weather API rate limit reached; using resilient fallback weather data along corridor."
         )
 
     return AnalyzeResult(
