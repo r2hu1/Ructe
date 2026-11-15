@@ -17,6 +17,9 @@ ALLOWED_HOSTS = [
     for host in os.environ.get("ALLOWED_HOSTS", "*").split(",")
     if host.strip()
 ]
+for default_host in [".vercel.app", "ructe.vercel.app", "127.0.0.1", "localhost"]:
+    if default_host not in ALLOWED_HOSTS and "*" not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(default_host)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
