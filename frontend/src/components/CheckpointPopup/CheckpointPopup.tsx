@@ -1,5 +1,4 @@
 import React from "react";
-import { X } from "lucide-react";
 import { Checkpoint } from "../../api/types";
 import {
   formatDistance,
@@ -16,97 +15,51 @@ interface CheckpointPopupProps {
 
 export const CheckpointPopup: React.FC<CheckpointPopupProps> = ({
   checkpoint,
-  onClose,
 }) => {
   const theme = getRiskTheme(checkpoint.risk.level);
   const etaFormatted = formatIsoDateTime(checkpoint.eta_utc);
+  const totalPrecip = (checkpoint.weather.rain_in_hr || 0) + (checkpoint.weather.snow_in_hr || 0);
 
   return (
-    <div
-      style={{
-        minWidth: "220px",
-        fontSize: "0.82rem",
-        color: "#ffffff",
-        backgroundColor: "#1e293b",
-        padding: "2px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "10px",
-          borderBottom: "1px solid #334155",
-          paddingBottom: "8px",
-        }}
-      >
-        <strong style={{ fontSize: "0.9rem", color: "#ffffff" }}>
+    <div className="min-w-[220px] font-sans text-[12px] text-white">
+      <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+        <strong className="text-[14px] font-bold text-white">
           Mile {formatDistance(checkpoint.mile_marker)}
         </strong>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span
-            className="chip"
-            style={{
-              backgroundColor: theme.bgColor,
-              color: theme.textColor,
-              border: `1px solid ${theme.borderColor}`,
-              fontWeight: 700,
-            }}
-          >
-            {checkpoint.risk.label}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "#94a3b8",
-              cursor: "pointer",
-              padding: "2px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <X size={15} />
-          </button>
-        </div>
+        <span
+          className="px-2 py-0.5 rounded-[21px] text-[10px] font-bold text-white uppercase tracking-wider"
+          style={{ backgroundColor: theme.color }}
+        >
+          {theme.name}
+        </span>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-        <div>
-          <span style={{ color: "#cbd5e1" }}>ETA Local: </span>
-          <strong style={{ color: "#ffffff" }}>{etaFormatted.local}</strong>
+      <div className="space-y-1.5 text-stone-200">
+        <div className="flex justify-between">
+          <span className="text-stone-400">ETA (Local):</span>
+          <span className="font-semibold tabular-nums text-white">{etaFormatted.local}</span>
         </div>
-        <div>
-          <span style={{ color: "#cbd5e1" }}>ETA UTC: </span>
-          <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{etaFormatted.utc}</span>
+        <div className="flex justify-between">
+          <span className="text-stone-400">Wind Speed:</span>
+          <span className="font-semibold tabular-nums text-white">
+            {formatSpeed(checkpoint.weather.wind_speed_mph)}
+          </span>
         </div>
-        <div style={{ marginTop: "4px" }}>
-          <span style={{ color: "#cbd5e1" }}>Wind (sustained): </span>
-          <strong style={{ color: "#ffffff" }}>{formatSpeed(checkpoint.weather.wind_speed_mph)}</strong>
+        <div className="flex justify-between">
+          <span className="text-stone-400">Precipitation:</span>
+          <span className="font-semibold tabular-nums text-white">
+            {formatPrecipitation(totalPrecip)}
+          </span>
         </div>
-        <div>
-          <span style={{ color: "#cbd5e1" }}>Rain: </span>
-          <strong style={{ color: "#ffffff" }}>{formatPrecipitation(checkpoint.weather.rain_in_hr)}</strong>
-        </div>
-        <div>
-          <span style={{ color: "#cbd5e1" }}>Snow: </span>
-          <strong style={{ color: "#ffffff" }}>{formatPrecipitation(checkpoint.weather.snow_in_hr)}</strong>
-        </div>
-
-        <div style={{ marginTop: "6px", borderTop: "1px solid #334155", paddingTop: "6px" }}>
-          <span style={{ color: "#cbd5e1" }}>Dominant Factor: </span>
-          <strong style={{ color: "#ffffff", textTransform: "capitalize" }}>
+        <div className="flex justify-between">
+          <span className="text-stone-400">Dominant Risk:</span>
+          <span className="font-semibold capitalize text-indigo-400">
             {checkpoint.risk.drivers.dominant_factor}
-          </strong>
+          </span>
         </div>
         {checkpoint.risk.drivers.load_rule_applied && (
-          <div style={{ color: "#f87171", fontSize: "0.75rem", marginTop: "2px" }}>
-            <span>Load rule applied: </span>
-            <strong style={{ color: "#fca5a5" }}>{checkpoint.risk.drivers.load_rule_applied}</strong>
+          <div className="mt-1.5 pt-1.5 border-t border-white/10 text-[10px] text-red-400 font-medium">
+            Load Escalation: {checkpoint.risk.drivers.load_rule_applied}
           </div>
         )}
       </div>

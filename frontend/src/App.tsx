@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
-import { ChevronUp, Plus, Truck } from "lucide-react";
+import { ChevronUp, SlidersHorizontal, Truck } from "lucide-react";
 import { useAppStore } from "./store/useAppStore";
 import { TripForm } from "./components/TripForm/TripForm";
 import { RecommendationBanner } from "./components/RecommendationBanner/RecommendationBanner";
@@ -36,19 +36,12 @@ export const App: React.FC = () => {
   }, [analyzeResult]);
 
   return (
-    <div className="app-container">
-      <main className="map-container">
+    <div className="relative w-screen h-dvh overflow-hidden bg-[#0c0a09] font-sans text-white">
+      {/* Light Basemap Canvas */}
+      <main className="absolute inset-0 z-0 w-full h-full">
         <Suspense
           fallback={
-            <div
-              style={{
-                display: "flex",
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#94a3b8",
-              }}
-            >
+            <div className="flex h-full w-full items-center justify-center bg-[#0c0a09] text-stone-400 font-medium text-[16px]">
               Loading interactive map...
             </div>
           }
@@ -57,29 +50,39 @@ export const App: React.FC = () => {
         </Suspense>
       </main>
 
-      <aside className="sidebar">
-        <header className="sidebar-header">
-          <h1 className="sidebar-title">
-            <Truck size={20} color="#38bdf8" />
-            <span>Weather-Aware Routing</span>
-          </h1>
-          <p className="sidebar-subtitle">
-            Dynamic corridor risk analysis & load escalation engine
-          </p>
+      {/* Floating Apple Stone Black Sidebar */}
+      <aside className="absolute top-4 left-4 bottom-4 z-20 w-[420px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] flex flex-col rounded-[21px] bg-[#0c0a09]/88 backdrop-blur-2xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)] overflow-hidden">
+        {/* Header bar */}
+        <header className="px-5 py-4 border-b border-white/10 bg-[#1c1917]/70 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center size-8 rounded-[21px] bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+              <Truck size={17} />
+            </div>
+            <div>
+              <h1 className="text-[17px] font-bold text-white tracking-tight leading-tight">
+                Weather-Aware Routing
+              </h1>
+              <p className="text-[12px] font-normal text-stone-400 leading-none mt-0.5">
+                Dynamic corridor risk analysis & load rules
+              </p>
+            </div>
+          </div>
         </header>
 
         {showInputs ? (
-          <div className="sidebar-pinned-form">
+          <div className="flex-1 overflow-y-auto px-5 py-4">
             {analyzeResult && (
-              <div className="form-toggle-row">
-                <span className="form-toggle-label">Trip Configuration</span>
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                <span className="text-[13px] font-semibold text-white">
+                  Trip Configuration
+                </span>
                 <button
                   type="button"
-                  className="form-hide-btn"
+                  className="flex items-center gap-1 text-[13px] font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
                   onClick={() => setShowInputs(false)}
                   title="Hide inputs"
                 >
-                  <ChevronUp size={15} />
+                  <ChevronUp size={16} />
                   <span>Hide</span>
                 </button>
               </div>
@@ -87,39 +90,42 @@ export const App: React.FC = () => {
             <TripForm />
           </div>
         ) : (
-          <div className="new-analysis-bar">
-            <div className="trip-summary-chip">
-              <span className="chip-locations">
+          <div className="px-5 py-3 border-b border-white/10 bg-[#1c1917]/90 flex items-center justify-between gap-3 flex-shrink-0">
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-semibold text-white truncate">
                 {originInput || "Origin"} → {destinationInput || "Destination"}
-              </span>
-              <span className="chip-meta">
+              </div>
+              <div className="text-[11px] font-normal text-stone-400 tabular-nums mt-0.5">
                 {Number(loadWeightLb).toLocaleString()} lb • {checkpointInterval} mi intervals
-              </span>
+              </div>
             </div>
             <button
               type="button"
-              className="new-analysis-btn"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[21px] text-[12px] font-semibold text-indigo-400 bg-white/5 border border-white/15 hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
               onClick={() => setShowInputs(true)}
-              title="Configure and run a new route analysis"
+              title="Edit parameters"
             >
-              <Plus size={15} />
-              <span>New Analysis</span>
+              <SlidersHorizontal size={13} />
+              <span>Edit</span>
             </button>
           </div>
         )}
 
-        <div className="sidebar-content">
-          {!isLoading && error && <ErrorState error={error} onRetry={executeAnalysis} />}
+        {/* Scrollable Results Section */}
+        {(error || isLoading || analyzeResult) && (
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+            {error && <ErrorState error={error} onRetry={executeAnalysis} />}
 
-          {isLoading && <SkeletonLoader />}
+            {isLoading && <SkeletonLoader />}
 
-          {!isLoading && analyzeResult && (
-            <>
-              <RecommendationBanner />
-              <RouteCards />
-            </>
-          )}
-        </div>
+            {!isLoading && analyzeResult && (
+              <div className="space-y-4">
+                <RecommendationBanner />
+                <RouteCards />
+              </div>
+            )}
+          </div>
+        )}
       </aside>
     </div>
   );

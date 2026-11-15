@@ -25,7 +25,7 @@ export const RouteCards: React.FC = () => {
     analyzeResult.routes.find((r) => r.id === selectedRouteId) || analyzeResult.routes[0];
 
   return (
-    <div className="route-cards-list">
+    <div className="space-y-3">
       {analyzeResult.routes.map((route) => (
         <RouteCard
           key={route.id}
@@ -40,64 +40,59 @@ export const RouteCards: React.FC = () => {
       ))}
 
       {selectedRoute && (
-        <div className="checkpoint-table-wrapper">
+        <div className="pt-2 border-t border-white/10">
           <button
             type="button"
-            className="table-toggle-btn"
+            className="w-full flex items-center justify-between py-2 text-[12px] font-semibold text-[#38bdf8] hover:text-[#7dd3fc] transition-colors"
             onClick={() => setTableExpanded(!tableExpanded)}
           >
             <span>
-              {selectedRoute.label} Checkpoint Details ({selectedRoute.checkpoints.length})
+              {selectedRoute.label} Checkpoints ({selectedRoute.checkpoints.length})
             </span>
             {tableExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {tableExpanded && (
-            <div style={{ maxHeight: "260px", overflowY: "auto" }}>
-              <table className="checkpoint-table">
-                <thead>
+            <div className="mt-2 max-h-52 overflow-y-auto rounded-[21px] border border-white/10 bg-slate-900/90 shadow-inner">
+              <table className="w-full text-left text-[11px] text-slate-200">
+                <thead className="bg-slate-800/80 text-slate-400 font-semibold sticky top-0 border-b border-white/10">
                   <tr>
-                    <th>Mile</th>
-                    <th>ETA</th>
-                    <th>Wind</th>
-                    <th>Rain</th>
-                    <th>Snow</th>
-                    <th>Risk</th>
-                    <th>Driver</th>
+                    <th className="py-1.5 px-2.5">Mile</th>
+                    <th className="py-1.5 px-2.5">ETA</th>
+                    <th className="py-1.5 px-2.5">Risk</th>
+                    <th className="py-1.5 px-2.5">Wind</th>
+                    <th className="py-1.5 px-2.5">Precip</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {selectedRoute.checkpoints.map((cp) => {
                     const theme = getRiskTheme(cp.risk.level);
                     const etaFormatted = formatIsoDateTime(cp.eta_utc);
-
                     return (
                       <tr
                         key={cp.id}
+                        className="hover:bg-white/5 cursor-pointer transition-colors"
                         onClick={() => setSelectedCheckpoint(cp)}
-                        style={{ cursor: "pointer" }}
                       >
-                        <td>{formatDistance(cp.mile_marker)}</td>
-                        <td title={`${etaFormatted.utc}`}>{etaFormatted.local}</td>
-                        <td>{formatSpeed(cp.weather.wind_speed_mph)}</td>
-                        <td>{formatPrecipitation(cp.weather.rain_in_hr)}</td>
-                        <td>{formatPrecipitation(cp.weather.snow_in_hr)}</td>
-                        <td>
+                        <td className="py-1.5 px-2.5 font-medium tabular-nums">
+                          {formatDistance(cp.mile_marker)}
+                        </td>
+                        <td className="py-1.5 px-2.5 text-slate-400 tabular-nums">
+                          {etaFormatted.local.split(" ")[0]}
+                        </td>
+                        <td className="py-1.5 px-2.5">
                           <span
-                            className="chip"
-                            style={{
-                              backgroundColor: theme.bgColor,
-                              color: theme.textColor,
-                              border: `1px solid ${theme.borderColor}`,
-                            }}
+                            className="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-wider"
+                            style={{ backgroundColor: theme.color }}
                           >
-                            {cp.risk.label}
+                            {theme.name}
                           </span>
                         </td>
-                        <td>
-                          {cp.risk.drivers.load_rule_applied
-                            ? "Load Esc."
-                            : cp.risk.drivers.dominant_factor}
+                        <td className="py-1.5 px-2.5 tabular-nums text-slate-300">
+                          {formatSpeed(cp.weather.wind_speed_mph)}
+                        </td>
+                        <td className="py-1.5 px-2.5 tabular-nums text-slate-300">
+                          {formatPrecipitation(cp.weather.rain_in_hr + cp.weather.snow_in_hr)}
                         </td>
                       </tr>
                     );

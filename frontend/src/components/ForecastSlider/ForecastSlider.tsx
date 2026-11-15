@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Eye, EyeOff, Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { Layers, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { computeForecastTimeAtHour } from "../../lib/format";
 import { useAppStore } from "../../store/useAppStore";
 
@@ -97,26 +97,43 @@ export const ForecastSlider: React.FC = () => {
 
   const { start_time_utc } = analyzeResult.heatmap;
   const timeFormatted = computeForecastTimeAtHour(start_time_utc, forecastHour);
+  const progressPercent = (forecastHour / 48) * 100;
 
   return (
-    <div className="forecast-dock">
+    <div className="absolute bottom-6 right-6 z-20 flex items-center bg-[#0c0a09]/92 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.8),0_1px_3px_rgba(255,255,255,0.06)] p-1.5 pl-2 select-none text-white">
+      {/* Primary Play/Pause in Indigo */}
       <button
         type="button"
-        className="play-btn"
+        className="size-8 rounded-full flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-shrink-0"
         onClick={() => setIsPlaying(!isPlaying)}
-        title={isPlaying ? "Pause Forecast Animation" : "Play 48h Forecast Animation"}
-        aria-label={isPlaying ? "Pause Forecast Animation" : "Play 48h Forecast Animation"}
+        title={isPlaying ? "Pause timeline" : "Play timeline"}
+        aria-label={isPlaying ? "Pause timeline" : "Play timeline"}
       >
-        {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+        {isPlaying ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
       </button>
 
-      <div className="slider-group">
-        <div className="slider-label-row">
-          <span>
-            Forecast Animation: <strong>+{forecastHour}h</strong> ({timeFormatted.local})
+      {/* Rewind */}
+      <button
+        type="button"
+        className="size-7 ml-1 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all focus:outline-none flex-shrink-0"
+        onClick={() => {
+          setIsPlaying(false);
+          setForecastHour(0);
+        }}
+        title="Reset to departure (0h)"
+        aria-label="Reset to departure time"
+      >
+        <RotateCcw size={12} />
+      </button>
+
+      {/* Scrubber track & timestamp */}
+      <div className="flex flex-col justify-center px-3 w-44 sm:w-56">
+        <div className="flex items-center justify-between text-[11px] leading-tight mb-1">
+          <span className="font-semibold text-indigo-400 tabular-nums">
+            +{forecastHour}h
           </span>
-          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-            {timeFormatted.utc}
+          <span className="text-stone-400 text-[10px] tabular-nums truncate max-w-[120px]">
+            {timeFormatted.local}
           </span>
         </div>
         <input
@@ -126,35 +143,46 @@ export const ForecastSlider: React.FC = () => {
           step={1}
           value={forecastHour}
           onChange={(e) => setForecastHour(Number(e.target.value))}
-          className="slider-input"
-          aria-label="48-hour Weather Forecast Slider"
+          className="apple-range"
+          style={{
+            background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%, rgba(255,255,255,0.15) 100%)`,
+          }}
+          aria-label="48-hour timeline slider"
         />
       </div>
 
+      {/* Divider */}
+      <div className="h-5 w-[1px] bg-white/15 mx-1 flex-shrink-0" />
+
+      {/* Audio briefing */}
       <button
         type="button"
-        className={`heatmap-toggle-btn ${isSpeaking ? "active" : ""}`}
+        className={`size-7 rounded-full flex items-center justify-center transition-all focus:outline-none flex-shrink-0 mr-1 ${
+          isSpeaking
+            ? "bg-red-500/20 text-red-400 ring-1 ring-red-400"
+            : "text-stone-400 hover:text-white hover:bg-white/10"
+        }`}
         onClick={toggleAudioBriefing}
-        title={isSpeaking ? "Stop Voice Briefing" : "Listen to Weather Audio Briefing"}
-        aria-label="Voice Weather Briefing"
+        title={isSpeaking ? "Stop voice briefing" : "Audio voice briefing"}
+        aria-label="Audio voice briefing"
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          {isSpeaking ? <VolumeX size={15} color="#ef4444" /> : <Volume2 size={15} />}
-          <span>{isSpeaking ? "Stop Audio" : "Audio Brief"}</span>
-        </span>
+        {isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
       </button>
 
+      {/* Heatmap toggle pill in Indigo */}
       <button
         type="button"
-        className={`heatmap-toggle-btn ${heatmapEnabled ? "active" : ""}`}
+        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition-all focus:outline-none ${
+          heatmapEnabled
+            ? "bg-indigo-600 text-white shadow-sm"
+            : "bg-white/5 text-stone-400 hover:bg-white/10 hover:text-white border border-white/10"
+        }`}
         onClick={() => setHeatmapEnabled(!heatmapEnabled)}
         aria-pressed={heatmapEnabled}
-        title="Toggle Weather Risk Heatmap"
+        title="Toggle weather corridor heatmap"
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          {heatmapEnabled ? <Eye size={14} /> : <EyeOff size={14} />}
-          <span>Heatmap</span>
-        </span>
+        <Layers size={12} />
+        <span>Heatmap</span>
       </button>
     </div>
   );

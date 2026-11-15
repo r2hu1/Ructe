@@ -18,22 +18,9 @@ export const RecommendationBanner: React.FC = () => {
   if (all_routes_blocked) {
     displayTitle = isSingleRoute ? "Route Blocked" : "All Routes Blocked";
   } else if (isSingleRoute) {
-    displayTitle = `Only 1 Route Available: ${recommendedRoute?.label || recommended_route_id}`;
+    displayTitle = `1 Route Available: ${recommendedRoute?.label || recommended_route_id}`;
   } else {
     displayTitle = `Recommended: ${recommendedRoute?.label || recommended_route_id}`;
-  }
-
-  let displayBadge = "";
-  let badgeClass = "";
-  if (all_routes_blocked) {
-    displayBadge = "HAZARDOUS";
-    badgeClass = "badge badge-not-recommended";
-  } else if (isSingleRoute) {
-    displayBadge = "AVAILABLE ROUTE";
-    badgeClass = "badge badge-available";
-  } else {
-    displayBadge = "RECOMMENDED";
-    badgeClass = "badge badge-recommended";
   }
 
   let displayText = explanation;
@@ -48,24 +35,51 @@ export const RecommendationBanner: React.FC = () => {
         ? formatDuration(recommendedRoute.summary.duration_seconds)
         : "";
       const severeMiles = recommendedRoute?.summary.severe_miles ?? 0;
-      displayText = `${recommendedRoute?.label || "Route A"} is the only available route (${durationStr}${severeMiles > 0 ? `, ${severeMiles.toFixed(1)} severe miles` : ""}). Evaluated weather risk across corridor.`;
+      const noTravelMiles = recommendedRoute?.summary.no_travel_miles ?? 0;
+      if (noTravelMiles > 0) {
+        displayText = `Route contains ${noTravelMiles.toFixed(1)} no-travel miles. Travel not advised.`;
+      } else if (severeMiles > 0) {
+        displayText = `Single route available with ${severeMiles.toFixed(1)} severe miles (${durationStr}).`;
+      } else {
+        displayText = `Single route available with minimal weather risk (${durationStr}).`;
+      }
     }
   }
 
   return (
-    <div className={`recommendation-banner ${all_routes_blocked ? "blocked" : isSingleRoute ? "single" : ""}`}>
-      <div className="banner-title-row">
-        <div className="banner-title">
+    <div
+      className={`p-3.5 rounded-[21px] border transition-all ${
+        all_routes_blocked
+          ? "bg-red-950/40 border-red-500/40 text-red-200"
+          : "bg-emerald-950/40 border-emerald-500/40 text-emerald-200"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="flex items-center gap-1.5 font-bold text-[13px] tracking-tight">
           {all_routes_blocked ? (
-            <AlertTriangle size={18} color="#ef4444" />
+            <AlertTriangle size={15} className="text-red-400 flex-shrink-0" />
           ) : (
-            <CheckCircle2 size={18} color="#22c55e" />
+            <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0" />
           )}
           <span>{displayTitle}</span>
         </div>
-        <span className={badgeClass}>{displayBadge}</span>
+        <span
+          className={`px-2 py-0.5 rounded-[21px] text-[10px] font-bold uppercase tracking-wider ${
+            all_routes_blocked
+              ? "bg-red-500/20 text-red-400 border border-red-500/30"
+              : isSingleRoute
+                ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
+                : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+          }`}
+        >
+          {all_routes_blocked
+            ? "HAZARDOUS"
+            : isSingleRoute
+              ? "AVAILABLE"
+              : "RECOMMENDED"}
+        </span>
       </div>
-      <p className="banner-explanation">{displayText}</p>
+      <p className="text-[12px] leading-relaxed opacity-90">{displayText}</p>
     </div>
   );
 };

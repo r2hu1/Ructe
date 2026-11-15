@@ -28,46 +28,23 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
   }
 
   return (
-    <div className="error-banner">
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 700 }}>
-        <AlertCircle size={18} />
+    <div className="p-4 rounded-[21px] bg-[#FEF2F2] border border-[#FCA5A5] text-[#991B1B] text-[12px] space-y-2">
+      <div className="flex items-center gap-2 font-bold text-[13px] text-[#DC2626]">
+        <AlertCircle size={16} />
         <span>{friendlyTitle}</span>
       </div>
-      <p style={{ marginTop: "4px" }}>{friendlyHelp}</p>
+      <p className="leading-relaxed opacity-90">{friendlyHelp}</p>
       {error.details && (
-        <pre
-          style={{
-            fontSize: "0.72rem",
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            padding: "6px",
-            borderRadius: "4px",
-            marginTop: "6px",
-            overflowX: "auto",
-          }}
-        >
+        <pre className="text-[11px] bg-white/70 p-2 rounded-[12px] border border-[#FCA5A5]/50 overflow-x-auto text-[#1E293B]">
           {JSON.stringify(error.details, null, 2)}
         </pre>
       )}
       <button
         type="button"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[21px] text-[11px] font-bold text-white bg-[#DC2626] hover:bg-[#B91C1C] shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#DC2626]"
         onClick={onRetry}
-        style={{
-          alignSelf: "flex-start",
-          marginTop: "8px",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          background: "transparent",
-          border: "1px solid #ef4444",
-          color: "#fee2e2",
-          padding: "5px 10px",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "0.78rem",
-          fontWeight: 600,
-        }}
       >
-        <RotateCcw size={14} />
+        <RotateCcw size={12} />
         <span>Try Again</span>
       </button>
     </div>

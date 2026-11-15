@@ -1,6 +1,12 @@
 {
   "version": 2,
   "skills": {
+    "apple-ui-skills": {
+      "source": "ihlamury/design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/apple/SKILL.md",
+      "computedHash": "fd49119f84ede882d8bf323b86df830f74e67f76c2bb9b45e9315492ca00572a"
+    },
     "unslop-ui": {
       "source": "JCarterJohnson/vibecoded-design-tells",
       "sourceType": "github",

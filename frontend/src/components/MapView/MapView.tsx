@@ -59,29 +59,57 @@ export const MapView: React.FC = () => {
         id: "heatmap-layer",
         type: "heatmap",
         source: "heatmap-source",
-        layout: { visibility: "visible" },
+        layout: { visibility: heatmapEnabled ? "visible" : "none" },
         paint: {
           "heatmap-weight": ["get", "weight"],
-          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 3],
+          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1.5, 5, 2.5, 9, 4],
           "heatmap-color": [
             "interpolate",
             ["linear"],
             ["heatmap-density"],
             0,
             "rgba(0,0,0,0)",
-            0.2,
+            0.1,
             "rgba(34, 197, 94, 0.4)",
-            0.4,
+            0.25,
             "rgba(234, 179, 8, 0.6)",
-            0.6,
+            0.5,
             "rgba(249, 115, 22, 0.8)",
-            0.8,
+            0.75,
             "rgba(239, 68, 68, 0.9)",
             1.0,
-            "rgba(127, 29, 29, 0.95)",
+            "rgba(153, 27, 27, 0.95)",
           ],
-          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 6, 8, 28],
-          "heatmap-opacity": 0.75,
+          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 12, 4, 24, 7, 45, 10, 75],
+          "heatmap-opacity": 0.8,
+        },
+      });
+
+      // Corridor circles layer for direct point-based risk visualization
+      map.addLayer({
+        id: "heatmap-points-layer",
+        type: "circle",
+        source: "heatmap-source",
+        layout: { visibility: heatmapEnabled ? "visible" : "none" },
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 3, 6, 6, 9, 10],
+          "circle-color": [
+            "step",
+            ["get", "score"],
+            "#22c55e",
+            1,
+            "#eab308",
+            2,
+            "#f97316",
+            3,
+            "#ef4444",
+            4,
+            "#991b1b",
+          ],
+          "circle-opacity": 0.6,
+          "circle-stroke-width": 1,
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-opacity": 0.4,
         },
       });
 
@@ -230,12 +258,12 @@ export const MapView: React.FC = () => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
+    const visibilityVal = heatmapEnabled ? "visible" : "none";
     if (map.getLayer("heatmap-layer")) {
-      map.setLayoutProperty(
-        "heatmap-layer",
-        "visibility",
-        heatmapEnabled ? "visible" : "none"
-      );
+      map.setLayoutProperty("heatmap-layer", "visibility", visibilityVal);
+    }
+    if (map.getLayer("heatmap-points-layer")) {
+      map.setLayoutProperty("heatmap-points-layer", "visibility", visibilityVal);
     }
   }, [heatmapEnabled, mapLoaded]);
 
@@ -349,7 +377,7 @@ export const MapView: React.FC = () => {
   }, [selectedCheckpoint, mapLoaded]);
 
   return (
-    <div className="map-container" ref={mapContainerRef}>
+    <div className="relative w-full h-full overflow-hidden" ref={mapContainerRef}>
       <Legend />
       <ForecastSlider />
     </div>

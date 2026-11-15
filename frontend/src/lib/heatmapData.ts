@@ -29,6 +29,11 @@ export function getHeatmapGeoJSONForHour(
     const ptScores = scores[i];
     const score = ptScores && hourIndex < ptScores.length ? ptScores[hourIndex] : 0;
 
+    // Weight 0.15 for low risk (score 0), scaling up to 1.0 for severe/no-travel (score 4)
+    // Ensures points along the trip corridor provide a subtle green baseline when low,
+    // and intensify to yellow/amber/red when weather risk is elevated.
+    const weight = 0.15 + (Math.min(score, 4) / 4.0) * 0.85;
+
     features.push({
       type: "Feature",
       geometry: {
@@ -37,7 +42,7 @@ export function getHeatmapGeoJSONForHour(
       },
       properties: {
         score,
-        weight: score / 4.0,
+        weight,
       },
     });
   }
