@@ -41,14 +41,15 @@ export const MapView: React.FC = () => {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const map = new maplibregl.Map({
+    const map = new (maplibregl.Map || (maplibregl as any).default.Map)({
       container: mapContainerRef.current,
       style: DEFAULT_STYLE_URL,
       center: [-98.5795, 39.8283],
       zoom: 3.8,
     });
 
-    map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
+    const NavigationControl = maplibregl.NavigationControl || (maplibregl as any).default.NavigationControl;
+    map.addControl(new NavigationControl({ showCompass: true }), "top-right");
 
     map.on("load", () => {
       map.addSource("heatmap-source", {
@@ -215,7 +216,8 @@ export const MapView: React.FC = () => {
         }
 
         const popupNode = document.createElement("div");
-        popupRef.current = new maplibregl.Popup({ closeButton: false, maxWidth: "300px" })
+        const PopupClass = maplibregl.Popup || (maplibregl as any).default.Popup;
+        popupRef.current = new PopupClass({ closeButton: false, maxWidth: "300px" })
           .setLngLat(geom.coordinates as [number, number])
           .setDOMContent(popupNode)
           .addTo(map);
