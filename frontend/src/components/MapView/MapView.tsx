@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot, Root } from "react-dom/client";
-import maplibregl, { Map as MapLibreMap, Popup } from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
+import type { Map as MapLibreMap, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Checkpoint } from "../../api/types";
 import {
@@ -170,7 +171,7 @@ export const MapView: React.FC = () => {
         if (!e.features || e.features.length === 0) return;
         const feat = e.features[0];
         const props = feat.properties as Record<string, any>;
-        const geom = feat.geometry as GeoJSON.Point;
+        const geom = feat.geometry as { type: string; coordinates: [number, number] };
 
         const cpData: Checkpoint = {
           id: props.id,
